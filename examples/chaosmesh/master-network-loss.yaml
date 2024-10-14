@@ -1,0 +1,19 @@
+kind: NetworkChaos
+apiVersion: chaos-mesh.org/v1alpha1
+metadata:
+  namespace: test-namespace
+  name: master-network-loss
+spec:
+  selector:
+    namespaces:
+      - test-namespace
+    pods:
+      test-namespace:
+        - storage-0-0
+  mode: all
+  action: loss
+  duration: 20s
+  loss:
+    loss: '20'
+    correlation: '80'
+  direction: to
