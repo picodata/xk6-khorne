@@ -1,0 +1,15 @@
+kind: PodChaos
+apiVersion: chaos-mesh.org/v1alpha1
+metadata:
+  namespace: test-namespace
+  name: slave-failure
+spec:
+  selector:
+    namespaces:
+      - test-namespace
+    pods:
+      test-namespace:
+        - storage-0-1
+  mode: all
+  action: pod-failure
+  duration: 4s
