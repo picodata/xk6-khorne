@@ -1,8 +1,8 @@
-kind: NetworkChaos
+kind: PodChaos
 apiVersion: chaos-mesh.org/v1alpha1
 metadata:
   namespace: test-namespace
-  name: master-network-loss
+  name: slave-failure
 spec:
   selector:
     namespaces:
@@ -11,9 +11,5 @@ spec:
       test-namespace:
         - storage-0-0
   mode: all
-  action: loss
-  duration: 20s
-  loss:
-    loss: '20'
-    correlation: '80'
-  direction: to
+  action: pod-failure
+  duration: 4s
