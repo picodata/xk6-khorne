@@ -24,28 +24,52 @@ type Chaos struct {
 	vu modules.VU
 }
 
-func (p *Chaos) RunChaosExperiment(namespace string, configPath string) error {
-	return chaos.RunChaosExperiment(namespace, configPath)
+type Result struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
 }
 
-func (p *Chaos) ExperimentSleep(duration string) {
-	chaos.ExperimentSleep(duration)
+func (p *Chaos) RunChaosExperiment(namespace string, configPath string) Result {
+	if err := chaos.RunChaosExperiment(namespace, configPath); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
 }
 
-func (p *Chaos) ClearChaosCache(namespace string) string {
-	return chaos.ClearChaosCache(namespace)
+func (p *Chaos) ExperimentSleep(duration string) Result {
+	if err := chaos.ExperimentSleep(duration); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
+
 }
 
-func (p *Chaos) CheckClusterHealth(namespace string) string {
-	return chaos.CheckClusterHealth(namespace)
+func (p *Chaos) ClearChaosCache(namespace string) Result {
+	if err := chaos.ClearChaosCache(namespace); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
 }
 
-func (p *Chaos) CheckPodsHealth(namespace string, pods []string) string {
-	return chaos.CheckPodsHealth(namespace, pods)
+func (p *Chaos) CheckClusterHealth(namespace string) Result {
+	if err := chaos.CheckClusterHealth(namespace); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
 }
 
-func (p *Chaos) RestartPods(namespace string, pods []string) string {
-	return chaos.RestartPods(namespace, pods)
+func (p *Chaos) CheckPodsHealth(namespace string, pods []string) Result {
+	if err := chaos.CheckClusterHealth(namespace); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
+}
+
+func (p *Chaos) RestartPods(namespace string, pods []string) Result {
+	if err := chaos.RestartPods(namespace, pods); err != nil {
+		return Result{false, err.Error()}
+	}
+	return Result{Success: true}
 }
 
 func (e *Chaos) Exports() modules.Exports {
