@@ -14,11 +14,11 @@ export const options = Object.assign({}, {}, {
 
 export default function (opts) {
   khorne.RunChaosExperiment("test-namespace", "./examples/chaosmesh/kill_one_slave_node.yaml")
-  khorne.ExperimentSleep("40s")
+  khorne.ExperimentSleep("5s")
   khorne.ClearChaosCache("test-namespace")
   let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-0"])
 
-  if (result != "") {
+  if (!result.success) {
     fail("Node didn't recover in time, error: " + result)
   }
 }

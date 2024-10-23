@@ -108,7 +108,7 @@ func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 
 // Deleting the experiment from chaosmesh list
 // to avoid collisions, when the same experiment is started
-func ClearChaosCache(namespace string) string {
+func ClearChaosCache(namespace string) error {
 	cc := NewController(namespace)
 
 	gvr := schema.GroupVersionResource{
@@ -124,7 +124,7 @@ func ClearChaosCache(namespace string) string {
 	)
 	if err != nil {
 		log.Fatalf("Failed to delete Network resources: %v", err)
-		return err.Error()
+		return err
 	}
 
 	gvr.Resource = "networkchaos"
@@ -135,30 +135,30 @@ func ClearChaosCache(namespace string) string {
 	)
 	if err != nil {
 		log.Fatalf("Failed to delete PodChaos resources: %v", err)
-		return err.Error()
+		return err
 	}
 
-	return ""
+	return nil
 }
 
 // Check the health of each node in cluster
 // Returning string so that JS can handle it correctly
-func CheckClusterHealth(namespace string) string {
+func CheckClusterHealth(namespace string) error {
 	cc := NewController(namespace)
 
 	allPods, err := cc.listNodes(namespace)
 	if err != nil {
-		return err.Error()
+		return err
 	}
 
 	for _, podName := range allPods {
 		err := cc.checkSingleNodeHealth(podName)
 		if err != nil {
-			return err.Error()
+			return err
 		}
 	}
 
-	return ""
+	return nil
 }
 
 func CheckPodsHealth(namespace string, pods []string) string {
@@ -218,14 +218,14 @@ func (cc *ChaosController) checkSingleNodeHealth(podName string) error {
 
 // Get all podes, affected by chaos experiment and reload them
 // This is done in order to avoid CrashLoopBackOff pod status
-func RestartPods(namespace string, pods []string) string {
+func RestartPods(namespace string, pods []string) error {
 	cc := NewController(namespace)
 
 	for _, podName := range pods {
 		if err := cc.deleteNode(cc.Namespace, podName); err != nil {
-			return err.Error()
+			return err
 		}
 	}
 
-	return ""
+	return nil
 }
