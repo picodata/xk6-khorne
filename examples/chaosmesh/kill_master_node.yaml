@@ -9,7 +9,7 @@ spec:
       - test-namespace
     pods:
       test-namespace:
-        - storage-0-2
+        - storage-0-1
   mode: all
   action: pod-failure
   duration: 4s
