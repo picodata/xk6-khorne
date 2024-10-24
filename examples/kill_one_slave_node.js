@@ -3,7 +3,6 @@
 // And hope that replicaset will return in consistent state
 
 import { fail } from 'k6';
-import { SharedArray } from 'k6/data'
 import khorne from "k6/x/khorne";
 
 export const options = Object.assign({}, {}, {
@@ -16,7 +15,7 @@ export default function (opts) {
   khorne.RunChaosExperiment("test-namespace", "./examples/chaosmesh/kill_one_slave_node.yaml")
   khorne.ExperimentSleep("5s")
   khorne.ClearChaosCache("test-namespace")
-  let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-0"])
+  let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-2"])
 
   if (!result.success) {
     fail("Node didn't recover in time, error: " + result)
