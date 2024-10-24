@@ -2,7 +2,7 @@
 // We basically disable one slave node from storage replicaset
 // And hope that replicaset will return in consistent state
 
-import { fail } from 'k6';
+import k6 from 'k6';
 import khorne from "k6/x/khorne";
 
 export const options = Object.assign({}, {}, {
@@ -18,7 +18,7 @@ export default function (opts) {
   let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-2"])
 
   if (!result.success) {
-    fail("Node didn't recover in time, error: " + result)
+    k6.fail("Node didn't recover in time, error: " + result)
   }
 }
 

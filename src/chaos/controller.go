@@ -70,7 +70,6 @@ func (cc *ChaosController) deleteNode(namespace string, podName string) error {
 
 // configConfigPath    - path to k8s cluster config
 // killNodes 	- to kill or not to kill affected nodes after each run
-// recoveryTime - how much time to wait for cluster to recover after experiment
 func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 	cc := NewController(namespace)
 
@@ -78,6 +77,7 @@ func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 	experimentFile, err := os.ReadFile(chaosConfigPath)
 	if err != nil {
 		log.Fatalf("Failed to read manifest file: %v", err)
+		return err
 	}
 	reader := bytes.NewReader(experimentFile)
 	decoder := yaml.NewYAMLOrJSONDecoder(reader, 1000)
@@ -85,6 +85,7 @@ func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 
 	if err := decoder.Decode(parsedYaml); err != nil {
 		log.Fatalf("Failed to decode YAML: %v", err)
+		return err
 	}
 
 	expType, _, err := unstructured.NestedString(parsedYaml.Object, "kind")
@@ -110,32 +111,24 @@ func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 // to avoid collisions, when the same experiment is started
 func ClearChaosCache(namespace string) error {
 	cc := NewController(namespace)
+	var chaosTypes = []string{"podchaos", "networkchaos"}
 
-	gvr := schema.GroupVersionResource{
-		Group:    "chaos-mesh.org", // ChaosMesh group
-		Version:  "v1alpha1",       // Version of the ChaosMesh resource
-		Resource: "podchaos",
-	}
+	for _, chaosType := range chaosTypes {
+		gvr := schema.GroupVersionResource{
+			Group:    "chaos-mesh.org", // ChaosMesh group
+			Version:  "v1alpha1",       // Version of the ChaosMesh resource
+			Resource: chaosType,
+		}
 
-	err := cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).DeleteCollection(
-		context.TODO(),
-		v1.DeleteOptions{},
-		v1.ListOptions{},
-	)
-	if err != nil {
-		log.Fatalf("Failed to delete Network resources: %v", err)
-		return err
-	}
-
-	gvr.Resource = "networkchaos"
-	err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).DeleteCollection(
-		context.TODO(),
-		v1.DeleteOptions{},
-		v1.ListOptions{},
-	)
-	if err != nil {
-		log.Fatalf("Failed to delete PodChaos resources: %v", err)
-		return err
+		err := cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).DeleteCollection(
+			context.TODO(),
+			v1.DeleteOptions{},
+			v1.ListOptions{},
+		)
+		if err != nil {
+			log.Fatalf("Failed to delete Network resources: %v", err)
+			return err
+		}
 	}
 
 	return nil
@@ -152,26 +145,12 @@ func CheckClusterHealth(namespace string) error {
 	}
 
 	for _, podName := range allPods {
-		err := cc.checkSingleNodeHealth(podName)
-		if err != nil {
+		if err := cc.checkSingleNodeHealth(podName); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func CheckPodsHealth(namespace string, pods []string) string {
-	cc := NewController(namespace)
-
-	for _, podName := range pods {
-		err := cc.checkSingleNodeHealth(podName)
-		if err != nil {
-			return err.Error()
-		}
-	}
-
-	return ""
 }
 
 // Check node health, params are suited for go tests
