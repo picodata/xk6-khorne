@@ -13,9 +13,9 @@ import (
 )
 
 func TestCheckUnhealthyNodeValidation(t *testing.T) {
-	clientset := fake.NewSimpleDynamicClient(scheme.Scheme)
 	// Create a fake dynamic client
-	// Create an unstructured Pod
+	clientset := fake.NewSimpleDynamicClient(scheme.Scheme)
+	// Create unhealthy pod
 	p := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "v1",
@@ -55,9 +55,9 @@ func TestCheckUnhealthyNodeValidation(t *testing.T) {
 }
 
 func TestCheckHealthyNodeValidation(t *testing.T) {
-	clientset := fake.NewSimpleDynamicClient(scheme.Scheme)
 	// Create a fake dynamic client
-	// Create an unstructured Pod
+	clientset := fake.NewSimpleDynamicClient(scheme.Scheme)
+	// Create healthy pod
 	p := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "v1",

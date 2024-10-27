@@ -36,8 +36,8 @@ func (p *Chaos) RunChaosExperiment(namespace string, configPath string) Result {
 	return Result{Success: true}
 }
 
-func (p *Chaos) ExperimentSleep(duration string) Result {
-	if err := chaos.ExperimentSleep(duration); err != nil {
+func (p *Chaos) Sleep(duration string) Result {
+	if err := chaos.Sleep(duration); err != nil {
 		return Result{false, err.Error()}
 	}
 	return Result{Success: true}
@@ -75,7 +75,7 @@ func (p *Chaos) RestartPods(namespace string, pods []string) Result {
 func (e *Chaos) Exports() modules.Exports {
 	return modules.Exports{
 		Named: map[string]interface{}{
-			"ExperimentSleep":    e.ExperimentSleep,
+			"Sleep":              e.Sleep,
 			"RunChaosExperiment": e.RunChaosExperiment,
 			"ClearChaosCache":    e.ClearChaosCache,
 			"CheckClusterHealth": e.CheckClusterHealth,

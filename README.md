@@ -17,4 +17,8 @@ xk6 build --with github.com/picodata/xk6-khorne@latest
 
 ## Перед запуском тестов
 
-До запуска, убедитесь, что у вас есть доступ к K8s кластеру, в котором установлен [chaosmesh](https://chaos-mesh.org/docs/production-installation-using-helm/). Тестируемый кластер и контроллер chaosmesh **должны находится в одном namespace**
+До запуска, убедитесь, что у вас есть доступ к K8s кластеру, в котором установлен [chaosmesh](https://chaos-mesh.org/docs/production-installation-using-helm/). Тестируемый кластер и контроллер chaosmesh **должны находится в одном namespace**.
+
+## Примеры использования
+Примеры использования можно найти в папке ```/examples```
+

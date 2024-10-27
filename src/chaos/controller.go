@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/picodata/xk6-khorne/src/client"
+	"github.com/picodata/xk6-khorne/src/config"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -22,9 +22,16 @@ type ChaosController struct {
 	Namespace     string
 }
 
-// NewController creates a new instance of ChaosController
+var chaosControllerSingltone *ChaosController
+
+// Create new instance or reuse already created instance of
+// ChaosController
 func NewController(namespace string) *ChaosController {
-	config, err := client.GetConfig()
+	if chaosControllerSingltone != nil {
+		return chaosControllerSingltone
+	}
+
+	config, err := config.GetConfig()
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil
@@ -35,7 +42,9 @@ func NewController(namespace string) *ChaosController {
 		log.Fatalf("Failed to create Kubernetes client: %v", err)
 	}
 
-	return &ChaosController{dynamicClient, namespace}
+	chaosControllerSingltone = &ChaosController{dynamicClient, namespace}
+
+	return chaosControllerSingltone
 }
 
 func (cc *ChaosController) listNodes(namespace string) ([]string, error) {
