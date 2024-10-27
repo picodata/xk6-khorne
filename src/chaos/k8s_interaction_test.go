@@ -45,8 +45,8 @@ func TestCheckUnhealthyNodeValidation(t *testing.T) {
 	if err != nil {
 		panic(err) // Handle error appropriately
 	}
-	chaosController := NewController("test-namespace")
-	chaosController.DynamicClient = clientset
+
+	chaosController := ChaosController{clientset, "test-namespace"}
 
 	err = chaosController.checkSingleNodeHealth("ill-pod")
 	if err == nil {
@@ -87,8 +87,8 @@ func TestCheckHealthyNodeValidation(t *testing.T) {
 	if err != nil {
 		panic(err) // Handle error appropriately
 	}
-	chaosController := NewController("test-namespace")
-	chaosController.DynamicClient = clientset
+
+	chaosController := ChaosController{clientset, "test-namespace"}
 
 	err = chaosController.checkSingleNodeHealth("ill-pod")
 	if err != nil {
