@@ -2,7 +2,7 @@ kind: PodChaos
 apiVersion: chaos-mesh.org/v1alpha1
 metadata:
   namespace: test-namespace
-  name: slave-failure
+  name: master-failure
 spec:
   selector:
     namespaces:

@@ -5,7 +5,7 @@ import (
 )
 
 // Wait cluster to reconfigure after chaos experiment
-func ExperimentSleep(durationStr string) error {
+func Sleep(durationStr string) error {
 	experimentDuration, err := time.ParseDuration(durationStr)
 	if err != nil {
 		return err
