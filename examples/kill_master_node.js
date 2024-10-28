@@ -4,14 +4,10 @@
 import k6 from "k6";
 import khorne from "k6/x/khorne";
 
-export const options = Object(
-  {},
-  {},
-  {
-    vus: 1,
-    iterations: 1,
-  }
-);
+export const options = {
+  vus: 1,
+  iterations: 1,
+};
 
 export default function (opts) {
   khorne.RunChaosExperiment(
