@@ -13,7 +13,4 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
         cache: false
-    - run: |
-        mkdir ~/.kube
-        touch ~/.kube/config
     - run: go test ./...
