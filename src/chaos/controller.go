@@ -77,27 +77,10 @@ func (cc *ChaosController) deleteNode(namespace string, podName string) error {
 	return cc.DynamicClient.Resource(podGVR).Namespace(namespace).Delete(context.TODO(), podName, v1.DeleteOptions{})
 }
 
-// configConfigPath    - path to k8s cluster config
-// killNodes 	- to kill or not to kill affected nodes after each run
-func RunChaosExperiment(namespace string, chaosConfigPath string) error {
+func RunChaosExperiment(namespace string, manifestObj *unstructured.Unstructured) error {
 	cc := NewController(namespace)
 
-	// Work with experiment yaml file
-	experimentFile, err := os.ReadFile(chaosConfigPath)
-	if err != nil {
-		log.Fatalf("Failed to read manifest file: %v", err)
-		return err
-	}
-	reader := bytes.NewReader(experimentFile)
-	decoder := yaml.NewYAMLOrJSONDecoder(reader, 1000)
-	parsedYaml := &unstructured.Unstructured{}
-
-	if err := decoder.Decode(parsedYaml); err != nil {
-		log.Fatalf("Failed to decode YAML: %v", err)
-		return err
-	}
-
-	expType, _, err := unstructured.NestedString(parsedYaml.Object, "kind")
+	expType, _, err := unstructured.NestedString(manifestObj.Object, "kind")
 	if err != nil {
 		return err
 	}
@@ -108,7 +91,43 @@ func RunChaosExperiment(namespace string, chaosConfigPath string) error {
 	}
 
 	// Apply the resource (equivalent to `kubectl apply -f`)
-	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), parsedYaml, v1.CreateOptions{})
+	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), manifestObj, v1.CreateOptions{})
+	if err != nil {
+		log.Fatalf("Failed to apply ChaosMesh resource: %v", err)
+	}
+
+	return err
+}
+
+func RunChaosExperimentFile(namespace string, manifestPath string) error {
+	cc := NewController(namespace)
+
+	manifestObj := &unstructured.Unstructured{}
+	experimentFile, err := os.ReadFile(manifestPath)
+	if err != nil {
+		log.Fatalf("Failed to read manifest file: %v", err)
+		return err
+	}
+	reader := bytes.NewReader(experimentFile)
+	decoder := yaml.NewYAMLOrJSONDecoder(reader, 1000)
+
+	if err := decoder.Decode(manifestObj); err != nil {
+		log.Fatalf("Failed to decode YAML: %v", err)
+		return err
+	}
+
+	expType, _, err := unstructured.NestedString(manifestObj.Object, "kind")
+	if err != nil {
+		return err
+	}
+	gvr := schema.GroupVersionResource{
+		Group:    "chaos-mesh.org",         // ChaosMesh group
+		Version:  "v1alpha1",               // Version of the ChaosMesh resource
+		Resource: strings.ToLower(expType), // Resource is "podchaos"
+	}
+
+	// Apply the resource (equivalent to `kubectl apply -f`)
+	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), manifestObj, v1.CreateOptions{})
 	if err != nil {
 		log.Fatalf("Failed to apply ChaosMesh resource: %v", err)
 	}

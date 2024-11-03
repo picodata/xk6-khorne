@@ -10,12 +10,29 @@ export const options = {
 };
 
 export default function (opts) {
-  khorne.RunChaosExperiment(
-    "test-namespace",
-    "./examples/chaosmesh/kill_master_node.yaml"
-  );
-  khorne.Sleep("20s");
+  khorne.RunChaosExperiment("test-namespace", {
+    kind: "PodChaos",
+    apiVersion: "chaos-mesh.org/v1alpha1",
+    metadata: {
+      namespace: "test-namespace",
+      name: "master-failure",
+    },
+    spec: {
+      selector: {
+        namespaces: ["test-namespace"],
+        pods: {
+          "test-namespace": ["storage1-0-0"],
+        },
+      },
+      mode: "all",
+      action: "pod-failure",
+      duration: "4s",
+    },
+  });
+
+  khorne.Sleep("10s");
   khorne.ClearChaosCache("test-namespace");
+
   let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-1"]);
 
   if (result.success) {
