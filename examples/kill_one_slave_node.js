@@ -11,10 +11,11 @@ export const options = {
 };
 
 export default function (opts) {
-  khorne.RunChaosExperiment(
+  khorne.RunChaosExperimentFile(
     "test-namespace",
     "./examples/chaosmesh/kill_one_slave_node.yaml"
   );
+
   khorne.Sleep("40s");
   khorne.ClearChaosCache("test-namespace");
   let result = khorne.CheckPodsHealth("test-namespace", ["storage-0-2"]);
