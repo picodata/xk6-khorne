@@ -77,10 +77,9 @@ func (cc *ChaosController) deleteNode(namespace string, podName string) error {
 	return cc.DynamicClient.Resource(podGVR).Namespace(namespace).Delete(context.TODO(), podName, v1.DeleteOptions{})
 }
 
-func RunChaosExperiment(namespace string, manifestObj *unstructured.Unstructured) error {
+func RunChaosExperiment(namespace string, manifest *unstructured.Unstructured) error {
 	cc := NewController(namespace)
-
-	expType, _, err := unstructured.NestedString(manifestObj.Object, "kind")
+	expType, _, err := unstructured.NestedString(manifest.Object, "kind")
 	if err != nil {
 		return err
 	}
@@ -91,7 +90,7 @@ func RunChaosExperiment(namespace string, manifestObj *unstructured.Unstructured
 	}
 
 	// Apply the resource (equivalent to `kubectl apply -f`)
-	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), manifestObj, v1.CreateOptions{})
+	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), manifest, v1.CreateOptions{})
 	if err != nil {
 		log.Fatalf("Failed to apply ChaosMesh resource: %v", err)
 	}
@@ -100,9 +99,7 @@ func RunChaosExperiment(namespace string, manifestObj *unstructured.Unstructured
 }
 
 func RunChaosExperimentFile(namespace string, manifestPath string) error {
-	cc := NewController(namespace)
-
-	manifestObj := &unstructured.Unstructured{}
+	manifest := &unstructured.Unstructured{}
 	experimentFile, err := os.ReadFile(manifestPath)
 	if err != nil {
 		log.Fatalf("Failed to read manifest file: %v", err)
@@ -111,28 +108,12 @@ func RunChaosExperimentFile(namespace string, manifestPath string) error {
 	reader := bytes.NewReader(experimentFile)
 	decoder := yaml.NewYAMLOrJSONDecoder(reader, 1000)
 
-	if err := decoder.Decode(manifestObj); err != nil {
+	if err := decoder.Decode(manifest); err != nil {
 		log.Fatalf("Failed to decode YAML: %v", err)
 		return err
 	}
 
-	expType, _, err := unstructured.NestedString(manifestObj.Object, "kind")
-	if err != nil {
-		return err
-	}
-	gvr := schema.GroupVersionResource{
-		Group:    "chaos-mesh.org",         // ChaosMesh group
-		Version:  "v1alpha1",               // Version of the ChaosMesh resource
-		Resource: strings.ToLower(expType), // Resource is "podchaos"
-	}
-
-	// Apply the resource (equivalent to `kubectl apply -f`)
-	_, err = cc.DynamicClient.Resource(gvr).Namespace(cc.Namespace).Create(context.TODO(), manifestObj, v1.CreateOptions{})
-	if err != nil {
-		log.Fatalf("Failed to apply ChaosMesh resource: %v", err)
-	}
-
-	return err
+	return RunChaosExperiment(namespace, manifest)
 }
 
 // Deleting the experiment from chaosmesh list
