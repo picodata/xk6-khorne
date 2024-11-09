@@ -1,7 +1,8 @@
 package khorne
 
 import (
-	"github.com/dop251/goja"
+	"fmt"
+
 	chaos "github.com/picodata/xk6-khorne/src/chaos"
 	"go.k6.io/k6/js/modules"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,29 +32,32 @@ type Result struct {
 	Error   string `json:"error,omitempty"`
 }
 
-func (p *Chaos) RunChaosExperiment(call goja.FunctionCall, runtime *goja.Runtime) goja.Value {
-	namespace := call.Argument(0).String()
-	configObj := call.Argument(1).Export()
-
-	manifestObj, ok := configObj.(map[string]interface{})
-	if !ok {
-		panic("Invalid manifest object")
+func (p *Chaos) RunChaosExperiment(namespace string, manifest map[string]interface{}) (bool, error) {
+	// Fill up constant fields in manifest to save some user time
+	manifest["apiVersion"] = "chaos-mesh.org/v1alpha1"
+	manifest["metadata"] = map[string]interface{}{
+		"namespace": namespace,
+		"name":      "chaos-experiment",
 	}
+
+	if spec, ok := manifest["spec"].(map[string]interface{}); !ok {
+		return false, fmt.Errorf("spec field is missing in experiment manifest")
+	} else {
+		if selector, ok := spec["selector"].(map[string]interface{}); !ok {
+			return false, fmt.Errorf("selector field is missing in experiment manifest")
+		} else {
+			selector["namespaces"] = []string{namespace}
+		}
+	}
+	// Create chaos experiment object and pass it to executor
 	manifestStruct := &unstructured.Unstructured{
-		Object: manifestObj,
-	}
-
-	response := map[string]interface{}{
-		"success": true,
-		"error":   "",
+		Object: manifest,
 	}
 	if err := chaos.RunChaosExperiment(namespace, manifestStruct); err != nil {
-		response["success"] = false
-		response["error"] = err.Error()
-		return runtime.ToValue(response)
+		return false, err
 	}
 
-	return runtime.ToValue(response)
+	return true, nil
 }
 
 func (p *Chaos) RunChaosExperimentFile(namespace string, manifestPath string) Result {

@@ -12,16 +12,10 @@ export const options = {
 export default function (opts) {
   khorne.RunChaosExperiment("test-namespace", {
     kind: "PodChaos",
-    apiVersion: "chaos-mesh.org/v1alpha1",
-    metadata: {
-      namespace: "test-namespace",
-      name: "master-failure",
-    },
     spec: {
       selector: {
-        namespaces: ["test-namespace"],
         pods: {
-          "test-namespace": ["storage1-0-0"],
+          "test-namespace": ["storage2-0-0"],
         },
       },
       mode: "all",
